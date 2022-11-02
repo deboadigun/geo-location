@@ -26,6 +26,12 @@ pipeline {
                 sh 'mvn test'
             }
         }
+        stage('complete') {
+            steps {
+                echo 'build-complete'
+                sleep 5
+            }
+        }        
         stage('Build Image') {
             steps {
                 script{
