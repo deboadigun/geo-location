@@ -9,12 +9,16 @@ pipeline {
   pollSCM '* * * * *'
 }
 
+    environment {
+    registry = '561422302125.dkr.ecr.us-east-1.amazonaws.com/devops_repo'
+    registryCredential = 'jenkins'
+    dockerimage = ''
+  }
+
     stages {
-        stage('maven package') {
+         stage('Code Build') {
             steps {
-                sh 'mvn clean'
-                sh 'mvn install'
-                sh 'mvn package'
+                sh 'mvn clean package'
             }
         }
         stage('test') {
@@ -22,16 +26,20 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        stage('Test') {
+        stage('Build Image') {
             steps {
-                echo 'Testing'
-                sleep 5
+                script{
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER"
+                } 
             }
         }
-        stage('Deploy') {
-            steps {
-                echo 'Deploys'
-                sleep 5
+        stage('Deploy image') {
+            steps{
+                script{ 
+                    docker.withRegistry("https://"+registry,"ecr:us-east-1:"+registryCredential) {
+                        dockerImage.push()
+                    }
+                }
             }
         }
     }
